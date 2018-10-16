@@ -2,12 +2,12 @@
 
 MCP4822::MCP4822(uint8_t cs){
     _cs = cs;
-    _highGain = true;
+    _gain = true;
 }
 
-MCP4822::MCP4822(uint8_t cs, bool highGain){
+MCP4822::MCP4822(uint8_t cs, bool gain){
     _cs = cs;
-    _highGain = highGain;
+    _gain = gain;
 }
 
 void MCP4822::init(){
@@ -16,15 +16,16 @@ void MCP4822::init(){
     digitalWrite(_cs, HIGH);
 }
 
-uint32_t MCP4822::init(uint8_t fineRes){
+uint8_t MCP4822::init(uint8_t fineRes){
     _fineRes = fineRes;
     init();
+    return _fineRes + 12;
 }
 
 void MCP4822::setVoltage(bool channel, unsigned int voltage){
     // <A or B><-><Gain 1 or 2><shutdown or active><D11><D10><D9><D8><D7><D6><D5><D4><D3><D2><D1><D0>
     _MSByte = 0b00110000 | (channel << 7); // set command bits
-    _MSByte |= _highGain << 6;
+    _MSByte |= _gain << 6;
     _MSByte |= 0b00001111 & (voltage >> 8); // get the 4 most significant bits of voltage and add them to most significant byte message
     _LSByte = 0b11111111 & voltage; // get 8 least significant bits
     digitalWrite(_cs, LOW);
@@ -55,18 +56,23 @@ void MCP4822::setVoltage(uint32_t voltage){
     */
     uint16_t coarse = voltage >> _fineRes;
     uint16_t fine = voltage - (coarse << _fineRes);
-    uint16_t fine *= 1 << (12 - _fineRes);
-    
+    fine *= 1 << (12 - _fineRes);
+    // Serial.print(coarse);
+    // Serial.print(", ");
+    // Serial.println(fine);
     setVoltage(0, fine);
     setVoltage(1, coarse);
 }
 
-uint32_t setFineResolution(uint8_t fineRes){
+uint8_t MCP4822::setFineResolution(uint8_t fineRes){
     _fineRes = fineRes;
-    return 1 << (_fineRes + 12); // gives the number of steps
+    return _fineRes + 12; // (1 << _fineRes + 12) gives the number of steps
 }
 
-void MCP4822::setAllVoltages(unsigned int voltage){
-    setVoltage(0, voltage);
-    setVoltage(1, voltage);
+uint8_t MCP4822::getBitResolution(){
+    return _fineRes + 12;
+}
+
+uint32_t MCP4822::getNumberOfSteps(){
+    return uint32_t(1) << _fineRes + 12;
 }

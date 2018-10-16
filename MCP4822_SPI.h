@@ -22,21 +22,22 @@ class MCP4822{
         uint8_t _cs;
         uint8_t _MSByte;
         uint8_t _LSByte;
-        uint8_t _fineRes;
-        bool _highGain;
+        uint8_t _fineRes = 0;
+        bool _gain;
 
     public:
         // Public functions and variables.  These can be accessed from
         // outside the class.
         MCP4822(uint8_t cs);
-        MCP4822(uint8_t cs, bool highGain); 
+        MCP4822(uint8_t cs, bool gain); 
     
         void init();
-        uint32_t init(uint8_t fineRes);
+        uint8_t init(uint8_t fineRes);
         void setVoltage(bool channel, unsigned int voltage);
         void setVoltage(uint32_t voltage);
-        uint32_t setFineResolution(uint8_t fineRes); // use both channels of the DAC in a voltage divider with buffer follower to gain higher resolution. For example, to gain an extra 10 bits, make a voltage divider where the fine channel has 2^10=1024 times the resistance compared to the coarse channel. Now use the fine DAC's output in multiples of 2^12/2^10=2^2=4 steps. Each time the fine output overflows 2^12-1, increment the coarse step. 
-        void setAllVoltages(unsigned int voltage);
+        uint8_t setFineResolution(uint8_t fineRes); // use both channels of the DAC in a voltage divider with buffer follower to gain higher resolution. For example, to gain an extra 10 bits, make a voltage divider where the fine channel has 2^10=1024 times the resistance compared to the coarse channel. Now use the fine DAC's output in multiples of 2^12/2^10=2^2=4 steps. Each time the fine output overflows 2^12-1, increment the coarse step. 
+        uint8_t getBitResolution();
+        uint32_t getNumberOfSteps();
 };
 #endif
 
